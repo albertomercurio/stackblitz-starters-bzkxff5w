@@ -53,7 +53,8 @@ onUnmounted(() => {
 function startAnimation(orbitsList, electronsList) {
     ctx.value = gsap.context(() => {
         const [orbitPath] = MotionPathPlugin.convertToPath(orbitsList[0]);
-        gsap.to(electronsList[0][0], {
+        const timeline = gsap.timeline();
+        timeline.to(electronsList[0][0], {
             motionPath: {
                 path: orbitPath,
                 align: orbitPath,
@@ -62,10 +63,29 @@ function startAnimation(orbitsList, electronsList) {
                 end: 1,
             },
             duration: 2,
-            repeat: -1,
+            repeat: 3,
             ease: "linear",
         });
+
+        timeline.to(electronsList[0][0], {
+            x: getOrbitCoordinates(orbitsList[1]).x,
+            y: getOrbitCoordinates(orbitsList[1]).y,
+            duration: 1,
+            ease: "power1.inOut",
+        });
     });
+}
+
+function getOrbitCoordinates(targetOrbit) {
+  const targetOrbitPath = MotionPathPlugin.convertToPath(targetOrbit)[0];
+  const orbitPathArray = MotionPathPlugin.getRawPath(targetOrbitPath);
+  console.log('Target Orbit:', targetOrbitPath);
+  console.log('Orbit Path Array:', orbitPathArray);
+  MotionPathPlugin.cacheRawPathMeasurements(orbitPathArray);
+  const pathPoint = MotionPathPlugin.getPositionOnPath(orbitPathArray , 0.0);
+  console.log('Point on Target Orbit:', pathPoint);
+
+  return pathPoint;
 }
 
 // Populate the orbits and electrons lists based on the SVG structure at runtime
