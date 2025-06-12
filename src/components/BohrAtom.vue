@@ -46,7 +46,12 @@ onMounted(() => {
             transformOrigin: 'center center'
         });
 
-        gsap.to(electron, {
+        const timeline = gsap.timeline();
+        const atom = rootRef.value;
+
+        console.log('Electron:', electron);
+
+        timeline.to(electron, {
             motionPath: {
                 path: orbitPath,
                 align: orbitPath,
@@ -59,6 +64,27 @@ onMounted(() => {
             ease: "linear",
         });
 
+        timeline.to(atom, {
+            x: 100,
+            duration: 2,
+            ease: "power1.inOut"
+        });
+
+        timeline.call(() => {
+            let electronTween = gsap.getTweensOf(".electron")[0];
+            electronTween.pause();
+        });
+
+        timeline.to(electron, {
+            attr: {
+                cx: () => "+=" + getOrbitRelativeDistance(electron, orbitPaths[1]).x,
+                cy: () => "+=" + getOrbitRelativeDistance(electron, orbitPaths[1]).y
+            },
+            duration: 2,
+        });
+
+        console.log('Electron Post:', gsap.utils.toArray('.electron')[0]);
+
         orbitList.value = gsap.utils.toArray('.orbit');
         electronList.value = gsap.utils.toArray('.electron');
 
@@ -68,6 +94,34 @@ onMounted(() => {
 onUnmounted(() => {
     ctx.revert(); // Cleanup GSAP context
 })
+
+// function getOrbitRelativeDistance(electron, targetOrbit) {
+//     const orbitPathRaw = MotionPathPlugin.getRawPath(targetOrbit);
+//     MotionPathPlugin.cacheRawPathMeasurements(orbitPathRaw);
+//     const p = MotionPathPlugin.getPositionOnPath(orbitPathRaw , 0.3);
+
+//     console.log('Path Position:', p);
+
+//     return p;
+// }
+
+function getOrbitRelativeDistance(electron0, targetOrbit0) {
+    const electron = gsap.utils.toArray(".electron")[0];
+    const targetOrbit = gsap.utils.toArray(".orbit")[1];
+    const targetOrbitPath = MotionPathPlugin.convertToPath(targetOrbit)[0];
+    const orbitPathRaw = MotionPathPlugin.getRawPath(targetOrbitPath);
+    MotionPathPlugin.cacheRawPathMeasurements(orbitPathRaw);
+    const p = MotionPathPlugin.getPositionOnPath(orbitPathRaw , 0.8);
+
+    const bbox = targetOrbitPath.getBBox();
+    const rl = MotionPathPlugin.getRelativePosition(electron, targetOrbitPath, [0.5, 0.5], {
+        x: p.x - bbox.x,
+        y: p.y - bbox.y
+    });
+
+    return rl;
+}
+
 </script>
 
 <style scoped>
