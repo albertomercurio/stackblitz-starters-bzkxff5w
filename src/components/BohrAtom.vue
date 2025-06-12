@@ -17,36 +17,56 @@ import { MotionPathPlugin } from 'gsap/MotionPathPlugin'
 gsap.registerPlugin(MotionPathPlugin)
 
 const rootRef = ref(null);
-const ctx = ref(null);
 const orbitList = ref([]);
 const electronList = ref([]);
+const ctx = gsap.context(() => {});
 
 defineExpose({
     rootRef,
     orbitList,
-    electronList
+    electronList,
 })
 
 onMounted(() => {
+    if (!rootRef.value) {
+        console.warn('BohrAtom is not yet set');
+        return;
+    }
     console.log('BohrAtom mounted');
 
-    ctx.value = gsap.context(() => {
-        const orbit1 = document.querySelector('.orbit1')
-        const orbit2 = document.querySelector('.orbit2')
-        const electron = document.querySelector('.electron')
+    ctx.add(() => {
+        const orbits =  gsap.utils.toArray('.orbit')
+        const electrons = gsap.utils.toArray('.electron');
+        const electron = electrons[0];
+        const orbitPaths = orbits.map(orbit => MotionPathPlugin.convertToPath(orbit)[0]);
+        const orbitPath = orbitPaths[0]; // Use the first orbit path for the electron
+
+        gsap.set(orbitPaths, {
+            rotation: 45,
+            transformOrigin: 'center center'
+        });
+
+        gsap.to(electron, {
+            motionPath: {
+                path: orbitPath,
+                align: orbitPath,
+                alignOrigin: [0.5, 0.5],
+                start: 0,
+                end: 1,
+            },
+            duration: 2,
+            repeat: -1,
+            ease: "linear",
+        });
 
         orbitList.value = gsap.utils.toArray('.orbit');
         electronList.value = gsap.utils.toArray('.electron');
 
-        gsap.set(orbit2, {
-            rotation: 45,
-            transformOrigin: 'center center'
-        })
     }, rootRef.value);
 })
 
 onUnmounted(() => {
-    ctx.value?.revert(); // Cleanup GSAP context
+    ctx.revert(); // Cleanup GSAP context
 })
 </script>
 
