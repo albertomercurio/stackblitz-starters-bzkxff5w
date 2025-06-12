@@ -7,19 +7,20 @@
             :class="index % 2 === 0 ? 'nucleon proton' : 'nucleon neutron'" />
 
         <!-- Orbitals -->
-        <ellipse v-for="(orbit, index) in orbits"
-            :key="`orbit-${index}`"
+        <ellipse v-for="(electronCount, orbitIndex) in orbits"
+            :key="`orbit-${orbitIndex}`"
             :cx="center" :cy="center"
-            :rx="(1 + index) * orbitRadius * orbitRadiusRatio[index]"
-            :ry="(1 + index) * orbitRadius"
-            :class="`orbit orbit-${index}`" />
+            :rx="(1 + orbitIndex) * orbitRadius * orbitRadiusRatio[orbitIndex]"
+            :ry="(1 + orbitIndex) * orbitRadius"
+            :class="`orbit orbit-${orbitIndex}`" />
 
         <!-- Electrons -->
-        <template v-for="(orbit, index) in orbits" :key="`electron-orbit-${index}`">
-            <circle v-for="i in orbit"
+        <template v-for="(electronCount, orbitIndex) in orbits" :key="`electron-orbit-${orbitIndex}`">
+            <circle v-for="i in electronCount"
+                :key="`electron-${orbitIndex}-${i}`"
                 :cx="center" :cy="center"
                 :r="electronRadius"
-                :class="`electron electron-${index}`" />
+                :class="`electron electron-orbit-${orbitIndex} electron-${i}`" />
         </template>
     </svg>
 </template>
@@ -72,29 +73,31 @@ onMounted(() => {
 
   ctx = gsap.context(() => {
     const orbits = gsap.utils.toArray<SVGEllipseElement>('.orbit')
-    const electron = gsap.utils.toArray<SVGCircleElement>('.electron')[0]
-    const orbitPaths = orbits.map(orbit =>
-      (MotionPathPlugin.convertToPath(orbit)[0] as SVGPathElement)
-    )
-    const orbitPath = orbitPaths[0]
 
-    gsap.set(orbitPaths, {
-      rotation: 30,
-      transformOrigin: 'center center'
+    orbits.forEach((orbit, orbitIndex) => {
+        const orbitPath = MotionPathPlugin.convertToPath(orbit)[0] as SVGPathElement
+        const electrons_orbit = gsap.utils.toArray<SVGCircleElement>(`.electron-orbit-${orbitIndex}`)
+        gsap.set(orbitPath, {
+          rotation: 30 * orbitIndex,
+          transformOrigin: 'center center'
+        })
+
+        electrons_orbit.forEach((electron, electronIndex) => {
+          gsap.to(electron, {
+            motionPath: {
+                path: orbitPath,
+                align: orbitPath,
+                alignOrigin: [0.5, 0.5],
+                start: electronIndex / electrons_orbit.length,
+                end: (electronIndex / electrons_orbit.length) + 1,
+            },
+            duration: 2,
+            repeat: -1,
+            ease: 'linear'
+          })
+        })
     })
 
-    gsap.to(electron, {
-      motionPath: {
-        path: orbitPath,
-        align: orbitPath,
-        alignOrigin: [0.5, 0.5],
-        start: 0,
-        end: 1
-      },
-      duration: 2,
-      repeat: -1,
-      ease: 'linear'
-    })
   }, rootRef.value)
 })
 
@@ -141,7 +144,8 @@ function generatePackedNucleusAlternating(
 
 function getOrbitRelativeDistance(
   electronClass: string,
-  targetOrbitClass: string
+  targetOrbitClass: string,
+  position: number
 ): { x: number; y: number } {
   const electron = gsap.utils.toArray<SVGCircleElement>(electronClass)[0]
   const targetOrbitElement = gsap.utils.toArray<SVGGeometryElement>(
@@ -150,7 +154,7 @@ function getOrbitRelativeDistance(
   const targetOrbitPath = MotionPathPlugin.convertToPath(targetOrbitElement)[0]
   const orbitPathRaw = MotionPathPlugin.getRawPath(targetOrbitPath)
   MotionPathPlugin.cacheRawPathMeasurements(orbitPathRaw)
-  const p = MotionPathPlugin.getPositionOnPath(orbitPathRaw, 0.8)
+  const p = MotionPathPlugin.getPositionOnPath(orbitPathRaw, position)
 
   const bbox = targetOrbitPath.getBBox()
   const rl = MotionPathPlugin.getRelativePosition(
