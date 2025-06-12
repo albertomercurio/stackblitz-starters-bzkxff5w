@@ -32,9 +32,8 @@ onMounted(() => {
     console.log('BohrAtom mounted');
 
     ctx.add(() => {
-        const orbits =  gsap.utils.toArray('.orbit')
-        const electrons = gsap.utils.toArray('.electron');
-        const electron = electrons[0];
+        const orbits =  gsap.utils.toArray('.orbit');
+        const electron = gsap.utils.toArray('.electron')[0];
         const orbitPaths = orbits.map(orbit => MotionPathPlugin.convertToPath(orbit)[0]);
         const orbitPath = orbitPaths[0]; // Use the first orbit path for the electron
 
@@ -43,9 +42,7 @@ onMounted(() => {
             transformOrigin: 'center center'
         });
 
-        const timeline = gsap.timeline();
-
-        timeline.to(electron, {
+        gsap.to(electron, {
             motionPath: {
                 path: orbitPath,
                 align: orbitPath,
