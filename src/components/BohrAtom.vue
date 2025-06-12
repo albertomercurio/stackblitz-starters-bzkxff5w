@@ -91,7 +91,7 @@ onMounted(() => {
                 start: electronIndex / electrons_orbit.length,
                 end: (electronIndex / electrons_orbit.length) + 1,
             },
-            duration: 2,
+            duration: speeds[orbitIndex],
             repeat: -1,
             ease: 'linear'
           })
