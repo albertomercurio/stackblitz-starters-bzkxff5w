@@ -77,8 +77,8 @@ onMounted(() => {
 
         timeline.to(electron, {
             attr: {
-                cx: () => "+=" + getOrbitRelativeDistance(electron, orbitPaths[1]).x,
-                cy: () => "+=" + getOrbitRelativeDistance(electron, orbitPaths[1]).y
+                cx: () => "+=" + getOrbitRelativeDistance(".electron", ".orbit2").x,
+                cy: () => "+=" + getOrbitRelativeDistance(".electron", ".orbit2").y
             },
             duration: 2,
         });
@@ -95,20 +95,9 @@ onUnmounted(() => {
     ctx.revert(); // Cleanup GSAP context
 })
 
-// function getOrbitRelativeDistance(electron, targetOrbit) {
-//     const orbitPathRaw = MotionPathPlugin.getRawPath(targetOrbit);
-//     MotionPathPlugin.cacheRawPathMeasurements(orbitPathRaw);
-//     const p = MotionPathPlugin.getPositionOnPath(orbitPathRaw , 0.3);
-
-//     console.log('Path Position:', p);
-
-//     return p;
-// }
-
-function getOrbitRelativeDistance(electron0, targetOrbit0) {
-    const electron = gsap.utils.toArray(".electron")[0];
-    const targetOrbit = gsap.utils.toArray(".orbit")[1];
-    const targetOrbitPath = MotionPathPlugin.convertToPath(targetOrbit)[0];
+function getOrbitRelativeDistance(electronClass, targetOrbitClass) {
+    const electron = gsap.utils.toArray(electronClass)[0];
+    const targetOrbitPath = MotionPathPlugin.convertToPath(targetOrbitClass)[0];
     const orbitPathRaw = MotionPathPlugin.getRawPath(targetOrbitPath);
     MotionPathPlugin.cacheRawPathMeasurements(orbitPathRaw);
     const p = MotionPathPlugin.getPositionOnPath(orbitPathRaw , 0.8);
