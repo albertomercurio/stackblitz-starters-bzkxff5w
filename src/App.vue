@@ -29,8 +29,8 @@ onMounted(() => {
 
     timeline.to(electron, {
         attr: {
-            cx: () => "+=" + atomRef.value.getOrbitRelativeDistance(".electron", ".orbit2").x,
-            cy: () => "+=" + atomRef.value.getOrbitRelativeDistance(".electron", ".orbit2").y
+            cx: () => "+=" + atomRef.value.getOrbitRelativeDistance(".electron", ".orbit-1").x,
+            cy: () => "+=" + atomRef.value.getOrbitRelativeDistance(".electron", ".orbit-1").y
         },
         duration: 2,
     });

@@ -1,11 +1,26 @@
 <template>
-    <svg ref="rootRef" width=200 height=200 viewBox="0 0 200 200">
-        <circle cx=100 cy=100 r=5 class="nucleon proton" />
+    <svg ref="rootRef" :width="size" :height="size" :viewBox="viewBox">
+        <!-- Nucleus -->
+        <circle v-for="(pos, index) in [...nucleusLayout].reverse()"
+            :key="`nucleon-${index}`"
+            :cx="pos[0]" :cy="pos[1]" :r="nucleonRadius"
+            :class="index % 2 === 0 ? 'nucleon proton' : 'nucleon neutron'" />
 
-        <ellipse cx=100 cy=100 rx=20 ry=20 class="orbit orbit1" />
-        <ellipse cx=100 cy=100 rx=60 ry=40 class="orbit orbit2" />
+        <!-- Orbitals -->
+        <ellipse v-for="(orbit, index) in orbits"
+            :key="`orbit-${index}`"
+            :cx="center" :cy="center"
+            :rx="(1 + index) * orbitRadius * orbitRadiusRatio[index]"
+            :ry="(1 + index) * orbitRadius"
+            :class="`orbit orbit-${index}`" />
 
-        <circle cx=100 cy=100 r=4 class="electron" />
+        <!-- Electrons -->
+        <template v-for="(orbit, index) in orbits" :key="`electron-orbit-${index}`">
+            <circle v-for="i in orbit"
+                :cx="center" :cy="center"
+                :r="electronRadius"
+                :class="`electron electron-${index}`" />
+        </template>
     </svg>
 </template>
 
@@ -31,8 +46,14 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 // Destructure only the props used in the template
-const { size } = props
+const { size, orbits, speeds, orbitRadiusRatio } = props
 const center = size / 2
+const viewBox = `0 0 ${size} ${size}`
+const totalNucleons = 7 // Total number of nucleons (protons + neutrons)
+const nucleonRadius = size / 50 // Radius of each nucleon
+const electronRadius = size / 52 // Radius of the electron
+const orbitRadius = size / 7 // Base radius for the first orbit
+const nucleusLayout = generatePackedNucleusAlternating(totalNucleons, center, nucleonRadius)
 
 const rootRef = ref<SVGSVGElement | null>(null)
 let ctx!: ReturnType<typeof gsap.context>
@@ -80,6 +101,43 @@ onMounted(() => {
 onUnmounted(() => {
   ctx.revert()
 })
+
+function generatePackedNucleusAlternating(
+  total: number,
+  center: number,
+  nucleonRadius: number,
+  overlapFactor = 1.6,
+): [number, number][] {
+  if (total <= 0) {
+    return []
+  }
+
+  const spacing = nucleonRadius * overlapFactor
+  const positions: [number, number][] = [[center, center]]
+  if (total === 1) {
+    return positions
+  }
+
+  let count = 1
+  let ring = 1
+
+  while (count < total) {
+    const radius = ring * spacing
+    const steps = 6 * ring
+
+    for (let i = 0; i < steps && count < total; i++) {
+      const angle = (2 * Math.PI * i) / steps
+      const x = center + radius * Math.cos(angle)
+      const y = center + radius * Math.sin(angle)
+      positions.push([x, y])
+      count++
+    }
+
+    ring++
+  }
+
+  return positions
+}
 
 function getOrbitRelativeDistance(
   electronClass: string,
