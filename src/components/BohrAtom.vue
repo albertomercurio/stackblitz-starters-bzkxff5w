@@ -18,6 +18,14 @@ gsap.registerPlugin(MotionPathPlugin)
 
 const rootRef = ref(null);
 const ctx = ref(null);
+const orbitList = ref([]);
+const electronList = ref([]);
+
+defineExpose({
+    rootRef,
+    orbitList,
+    electronList
+})
 
 onMounted(() => {
     console.log('BohrAtom mounted');
@@ -27,17 +35,12 @@ onMounted(() => {
         const orbit2 = document.querySelector('.orbit2')
         const electron = document.querySelector('.electron')
 
+        orbitList.value = gsap.utils.toArray('.orbit');
+        electronList.value = gsap.utils.toArray('.electron');
+
         gsap.set(orbit2, {
             rotation: 45,
             transformOrigin: 'center center'
-        })
-
-        gsap.to(electron, {
-            attr: {
-                cx: getOrbitRelativeDistance(electron, orbit2).x,
-                cy: getOrbitRelativeDistance(electron, orbit2).y
-            },
-            duration: 2,
         })
     }, rootRef.value);
 })
@@ -45,18 +48,6 @@ onMounted(() => {
 onUnmounted(() => {
     ctx.value?.revert(); // Cleanup GSAP context
 })
-
-
-function getOrbitRelativeDistance(electron, targetOrbit) {
-    const targetOrbitPath = MotionPathPlugin.convertToPath(targetOrbit)[0];
-    const orbitPathRaw = MotionPathPlugin.getRawPath(targetOrbitPath);
-    MotionPathPlugin.cacheRawPathMeasurements(orbitPathRaw);
-    const p = MotionPathPlugin.getPositionOnPath(orbitPathRaw , 0.3);
-
-    console.log('Position on path:', p);
-
-    return p;
-}
 </script>
 
 <style scoped>
