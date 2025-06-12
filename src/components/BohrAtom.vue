@@ -17,14 +17,11 @@ import { MotionPathPlugin } from 'gsap/MotionPathPlugin'
 gsap.registerPlugin(MotionPathPlugin)
 
 const rootRef = ref(null);
-const orbitList = ref([]);
-const electronList = ref([]);
 const ctx = gsap.context(() => {});
 
 defineExpose({
     rootRef,
-    orbitList,
-    electronList,
+    getOrbitRelativeDistance,
 })
 
 onMounted(() => {
@@ -47,9 +44,6 @@ onMounted(() => {
         });
 
         const timeline = gsap.timeline();
-        const atom = rootRef.value;
-
-        console.log('Electron:', electron);
 
         timeline.to(electron, {
             motionPath: {
@@ -63,37 +57,12 @@ onMounted(() => {
             repeat: -1,
             ease: "linear",
         });
-
-        timeline.to(atom, {
-            x: 100,
-            duration: 2,
-            ease: "power1.inOut"
-        });
-
-        timeline.call(() => {
-            let electronTween = gsap.getTweensOf(".electron")[0];
-            electronTween.pause();
-        });
-
-        timeline.to(electron, {
-            attr: {
-                cx: () => "+=" + getOrbitRelativeDistance(".electron", ".orbit2").x,
-                cy: () => "+=" + getOrbitRelativeDistance(".electron", ".orbit2").y
-            },
-            duration: 2,
-        });
-
-        console.log('Electron Post:', gsap.utils.toArray('.electron')[0]);
-
-        orbitList.value = gsap.utils.toArray('.orbit');
-        electronList.value = gsap.utils.toArray('.electron');
-
     }, rootRef.value);
 })
 
 onUnmounted(() => {
     ctx.revert(); // Cleanup GSAP context
-})
+});
 
 function getOrbitRelativeDistance(electronClass, targetOrbitClass) {
     const electron = gsap.utils.toArray(electronClass)[0];
